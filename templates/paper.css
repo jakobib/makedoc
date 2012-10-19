@@ -1,0 +1,25 @@
+/* Thanks to http://www.charlietanksley.net/philtex/primarily-pandoc/ ! */
+
+body {
+  font-family: "Hoefler Text", "Georgia", 'Times', "Bitstream Vera Serif", serif;
+  width: 700px;
+  margin: 0 auto;
+  color: #222222;
+  background: #fefefe;
+}
+
+h1,h2,h3 {
+  text-shadow: rgba(128, 128, 128, 0.6) 0px 1px 3px;
+}
+
+p.caption, caption { 
+  font-style: italic; 
+  font-weight: bold;
+}
+
+.footnotes p {
+  margin-bottom: 0.2em;
+  margin-top: 0.2em;
+}
+
+
