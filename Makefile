@@ -38,7 +38,7 @@ slides.pdf: slides.md
 	@pdflatex tmp.tex > /dev/null
 	@pdflatex tmp.tex > /dev/null
 	@mv tmp.pdf slides.pdf
-	@rm -f tmp.*
+#	@rm -f tmp.*
 
 clean:
 	@rm -f *.aux *.log *.out *.bbl *.blg *.bak tmp.*
