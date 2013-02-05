@@ -23,8 +23,15 @@ SLIDES_PDF_TEMPLATE = make/templates/$(TEMPLATE)-slides.tex
 V_SLIDES_PDF=
 
 %.html: %.md
-	@pandoc -N $< -o $@ --template $(HTML_TEMPLATE) --css $(HTML_CSS) $(V_METADATA)
+	@rm -f tmp.*
+	@echo "% $(TITLE)" > tmp.md
+	@echo "% $(AUTHOR)" >> tmp.md
+	@echo "% $(DATE)" >> tmp.md
+	@echo "" >> tmp.md
+	@cat $< >> tmp.md
+	@pandoc -N tmp.md -o $@ --template $(HTML_TEMPLATE) --css $(HTML_CSS) $(V_METADATA)
 	@echo created $@
+	@rm tmp.md
 
 slides.pdf: slides.md
 	@rm -f tmp.*
