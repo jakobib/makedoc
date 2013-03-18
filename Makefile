@@ -1,7 +1,7 @@
 .SUFFIXES:
 .SUFFIXES: .md .html .pdf
 
-# load metadata from files (TODO: YAML config file)
+# load metadata from files (TODO: use Config::INI)
 TITLE    := $(shell perl -ne '/title\s*=\s*(.*)/ && print $$1' metadata.ini 2>/dev/null)
 AUTHOR   := $(shell perl -ne '/author\s*=(.*)/ && print $$1' metadata.ini 2>/dev/null)
 DATE     := $(shell perl -ne '/date\s*=(.*)/ && print $$1' metadata.ini 2>/dev/null)
