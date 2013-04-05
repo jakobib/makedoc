@@ -25,7 +25,7 @@ merged).
 
         git submodule add https://github.com/jakobib/makespec.git
 
-3.  Create a `Makefile` that at least contains `include make/Makefile`.
+3.  Create a `Makefile` that at least contains `include makedoc/Makefile`.
 
 4.  Optionally create the file `metadata.ini` with title, abstract,
     keywords. This will be passed to templates.

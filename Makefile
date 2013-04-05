@@ -9,6 +9,8 @@ ABSTRACT := $(shell perl -ne '/abstract\s*=(.*)/ && print $$1' metadata.ini 2>/d
 KEYWORDS := $(shell perl -ne '/keywords\s*=(.*)/ && print $$1' metadata.ini 2>/dev/null)
 NAME     :=
 
+MAKEDOC=makedoc
+
 # combine metadata as arguments to templates (FIXME: escaping)
 V_METADATA=-V abstract:'$(ABSTRACT)' -V keywords:'$(KEYWORDS)'
 
@@ -16,10 +18,10 @@ V_METADATA=-V abstract:'$(ABSTRACT)' -V keywords:'$(KEYWORDS)'
 TEMPLATE=default
 
 # create HTML paper
-HTML_CSS      = make/templates/$(TEMPLATE).css
-HTML_TEMPLATE = make/templates/$(TEMPLATE).html
+HTML_CSS      = $(MAKEDOC)/templates/$(TEMPLATE).css
+HTML_TEMPLATE = $(MAKEDOC)/templates/$(TEMPLATE).html
 
-SLIDES_PDF_TEMPLATE = make/templates/$(TEMPLATE)-slides.tex
+SLIDES_PDF_TEMPLATE = $(MAKEDOC)/templates/$(TEMPLATE)-slides.tex
 V_SLIDES_PDF=
 
 %.html: %.md
