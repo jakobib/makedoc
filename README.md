@@ -23,7 +23,7 @@ merged).
 
 2.  Check out this module in a subdirectory called 'make' (possibly as git submodule):
 
-        git submodule add https://github.com/jakobib/makespec.git
+        git submodule add https://github.com/jakobib/makedoc.git
 
 3.  Create a `Makefile` that at least contains `include makedoc/Makefile`.
 
