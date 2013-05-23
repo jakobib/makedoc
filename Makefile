@@ -49,10 +49,13 @@ endif
 
 COMBINED = $(NAME)-tmp.md
 
+# set `TOC:=` to disable table of contents in slides
+TOC=--toc
+
 #######################
 
 .SUFFIXES:
-.SUFFIXES: .md .html .pdf
+.SUFFIXES: .md .html .pdf .tmp
 
 KEYWORDS := $(shell perl -ne '/keywords\s*=(.*)/ && print $$1' metadata.ini 2>/dev/null)
 
@@ -82,28 +85,26 @@ V_SLIDES_PDF=
 	@echo created $@
 	@rm tmp.md
 
-slides.pdf: slides.md
-	@rm -f tmp.*
-	@echo "% $(TITLE)" > tmp.md
-	@echo "% $(AUTHOR)" >> tmp.md
-	@echo "% $(DATE)" >> tmp.md
-	@echo "" >> tmp.md
-	@cat slides.md >> tmp.md
-	@pandoc tmp.md --slide-level 2 --toc -t beamer -o tmp.tex --template $(SLIDES_PDF_TEMPLATE) $(V_METADATA) $(V_SLIDES_PDF)
+%.tmp: %.md
+	@echo "% $(TITLE)" > $@
+	@echo "% $(AUTHOR)" >> $@
+	@echo "% $(DATE)" >> $@
+	@echo "" >> $@
+	@cat $< >> $@
+# TODO: replace document variables
+
+slides.pdf: slides.tmp
+	@pandoc $< --slide-level 2 $(TOC) -t beamer -o tmp.tex --template $(SLIDES_PDF_TEMPLATE) $(V_METADATA) $(V_SLIDES_PDF)
 	@perl -p -i -e 's/^\\caption{}//' tmp.tex
 	@pdflatex tmp.tex > /dev/null
 	@pdflatex tmp.tex > /dev/null
 	@mv tmp.pdf slides.md.pdf
 #	@rm -f tmp.*
 
-paper-tmp.md: paper.md
-	@echo "% $(TITLE)" > $@
-	@echo "% $(AUTHOR)" >> $@
-	@echo "% $(DATE)" >> $@
-	@echo "" >> $@
-	@cat $< >> $@
+slides.html: slides.tmp
+	@pandoc -t slidy --self-contained -s $< -o $@
 
-paper.tex: paper-tmp.md
+paper.tex: paper.tmp
 	@pandoc -t latex -o paper.tex $< \
 		--template $(MAKEDOC)/templates/paper.tex --smart -V "mainfont=DejaVu Serif"
 
@@ -111,8 +112,11 @@ paper.pdf: paper.tex
 	@xelatex paper.tex > /dev/null
 	@xelatex paper.tex > /dev/null
 
+handout.pdf: handout.tmp
+	@pandoc -o $@ $<
+
 clean:
-	@rm -f *.aux *.log *.out *.bbl *.blg *.bak tmp.*
+	@rm -f *.aux *.log *.out *.bbl *.blg *.bak tmp.* *.tmp
 
 TMP := normalize.tmp
 
