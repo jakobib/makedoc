@@ -34,6 +34,10 @@ ifeq ($(SOURCE),)
 	SOURCE = $(NAME).md
 endif
 
+ifneq ($(BIBLIOGRAPHY),)
+	BIBARG=--bibliography=$(BIBLIOGRAPHY)
+endif
+
 REVHASH = $(shell git log -1 --format="%H" -- $(SOURCE))
 REVDATE = $(shell git log -1 --format="%ai" -- $(SOURCE))
 REVSHRT = $(shell git log -1 --format="%h" -- $(SOURCE))
@@ -81,7 +85,7 @@ V_SLIDES_PDF=
 	@echo "" >> tmp.md
 	@cat $< >> tmp.md
 	@pandoc -N tmp.md -o $@ --template $(HTML_TEMPLATE) --css $(HTML_CSS) $(V_METADATA)\
-		--smart
+		--smart $(BIBARG)
 	@echo created $@
 	@rm tmp.md
 
@@ -94,7 +98,8 @@ V_SLIDES_PDF=
 # TODO: replace document variables
 
 slides.pdf: slides.tmp
-	@pandoc $< --slide-level 2 $(TOC) -t beamer -o tmp.tex --template $(SLIDES_PDF_TEMPLATE) $(V_METADATA) $(V_SLIDES_PDF)
+	@pandoc $< --slide-level 2 $(TOC) -t beamer -o tmp.tex --template $(SLIDES_PDF_TEMPLATE) \
+		$(V_METADATA) $(V_SLIDES_PDF) $(BIBARG)
 	@perl -p -i -e 's/^\\caption{}//' tmp.tex
 	@pdflatex tmp.tex > /dev/null
 	@pdflatex tmp.tex > /dev/null
@@ -102,18 +107,19 @@ slides.pdf: slides.tmp
 #	@rm -f tmp.*
 
 slides.html: slides.tmp
-	@pandoc -t slidy --self-contained -s $< -o $@
+	@pandoc -t slidy --self-contained -s $< -o $@ $(BIBARG)
 
 paper.tex: paper.tmp
 	@pandoc -t latex -o paper.tex $< \
-		--template $(MAKEDOC)/templates/paper.tex --smart -V "mainfont=DejaVu Serif"
+		--template $(MAKEDOC)/templates/paper.tex --smart -V "mainfont=DejaVu Serif" \
+		$(BIBARG)
 
 paper.pdf: paper.tex
 	@xelatex paper.tex > /dev/null
 	@xelatex paper.tex > /dev/null
 
 handout.pdf: handout.tmp
-	@pandoc -o $@ $<
+	@pandoc -o $@ $< $(BIBARG)
 
 clean:
 	@rm -f *.aux *.log *.out *.bbl *.blg *.bak tmp.* *.tmp
