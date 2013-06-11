@@ -50,7 +50,7 @@ $if(natbib)$
 \bibliographystyle{plainnat}
 $endif$
 $if(biblatex)$
-\usepackage{biblatex}
+\usepackage[backend=biber,$if(bibstyle)$style=$bibstyle$$endif$]{biblatex}
 $if(biblio-files)$
 \bibliography{$biblio-files$}
 $endif$
@@ -181,8 +181,7 @@ $endif$
 $endif$
 $endif$
 $if(biblatex)$
-\printbibliography$if(biblio-title)$[title=$biblio-title$]$endif$
-
+\printbibliography
 $endif$
 $for(include-after)$
 $include-after$
