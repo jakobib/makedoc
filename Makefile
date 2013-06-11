@@ -111,7 +111,7 @@ slides.pdf: slides.tmp
 	@perl -p -i -e 's/^\\caption{}//' tmp.tex
 	@pdflatex tmp.tex > /dev/null
 	@pdflatex tmp.tex > /dev/null
-	@mv tmp.pdf slides.md.pdf
+	@mv tmp.pdf $@
 #	@rm -f tmp.*
 
 slides.html: slides.tmp
