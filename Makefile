@@ -39,9 +39,9 @@ ifneq ($(BIBLIOGRAPHY),)
 	ifneq ($(CSL),)
 		BIBARGS = --bibliography=$(BIBLIOGRAPHY) --csl=$(CSL)
 	endif
-	BIBLATEX=--biblatex
+	BIBLATEX = --biblatex
 	ifneq ($(BIBSTYLE),)
-		BIBLATEX=--biblatex -V bibstyle:$(BIBSTYLE)
+		BIBLATEX = --biblatex -V bibstyle:$(BIBSTYLE)
 	endif
 endif
 # TODO: use last section header as bibtitle
@@ -62,9 +62,26 @@ endif
 COMBINED = $(NAME)-tmp.md
 
 # set `TOC:=` to disable table of contents in slides
-TOC=--toc
+TOC = --toc
 
-#######################
+########################################################################
+
+PANDOC = $(shell which pandoc)
+ifeq ($(PANDOC),)
+	PANDOC = $(error please install pandoc)
+endif
+
+XELATEX = $(shell which xelatex)
+ifeq ($(XELATEX),)
+	XELATEX = $(error please install xelatex)
+endif
+
+BIBER = $(shell which biber)
+ifeq ($(BIBER),)
+	BIBER = $(error please install biber)
+endif
+
+########################################################################
 
 .SUFFIXES:
 .SUFFIXES: .md .html .pdf .tmp
@@ -92,7 +109,7 @@ V_SLIDES_PDF=
 	@echo "% $(DATE)" >> tmp.md
 	@echo "" >> tmp.md
 	@cat $< >> tmp.md
-	@pandoc -N tmp.md -o $@ --template $(HTML_TEMPLATE) --css $(HTML_CSS) $(V_METADATA)\
+	@$(PANDOC) -N tmp.md -o $@ --template $(HTML_TEMPLATE) --css $(HTML_CSS) $(V_METADATA)\
 		--smart $(BIBARGS) -t html5
 	@echo created $@
 	@rm tmp.md
@@ -106,30 +123,30 @@ V_SLIDES_PDF=
 # TODO: replace document variables
 
 slides.pdf: slides.tmp
-	@pandoc $< --slide-level 2 $(TOC) -t beamer -o tmp.tex --template $(SLIDES_PDF_TEMPLATE) \
+	@$(PANDOC) $< --slide-level 2 $(TOC) -t beamer -o tmp.tex --template $(SLIDES_PDF_TEMPLATE) \
 		$(V_METADATA) $(V_SLIDES_PDF) $(BIBARGS) $(BIBLATEX)
 	@perl -p -i -e 's/^\\caption{}//' tmp.tex
-	@pdflatex tmp.tex > /dev/null
-	@pdflatex tmp.tex > /dev/null
+	@$(XELATEX) tmp.tex > /dev/null
+	@$(XELATEX) tmp.tex > /dev/null
 	@mv tmp.pdf $@
 #	@rm -f tmp.*
 
 slides.html: slides.tmp
-	@pandoc -t slidy --self-contained -s $< -o $@ $(BIBARGS)
+	@$(PANDOC) -t slidy --self-contained -s $< -o $@ $(BIBARGS)
 
 paper.tex: paper.tmp
-	@pandoc -t latex -o paper.tex $< \
+	@$(PANDOC) -t latex -o paper.tex $< \
 		--template $(MAKEDOC)/templates/paper.tex --smart -V "mainfont=DejaVu Serif" \
 		$(BIBARGS) $(BIBLATEX)
 
 paper.pdf: paper.tex
 	@rm -f *.aux *.log *.out *.bbl *.blg *.bcf
-	@xelatex paper.tex > /dev/null
-	@biber paper
-	@xelatex paper.tex > /dev/null
+	@$(XELATEX) --halt-on-error paper.tex > /dev/null
+	@$(BIBER) paper
+	@$(XELATEX) --halt-on-error paper.tex > /dev/null
 
 handout.pdf: handout.tmp
-	@pandoc -o $@ $< $(BIBARGS)
+	@$(PANDOC) -o $@ $< $(BIBARGS)
 
 clean:
 	@rm -f *.tex *.aux *.log *.out *.bbl *.blg *.bcf *.run.xml *.bak tmp.* *.tmp
@@ -138,7 +155,7 @@ TMP := normalize.tmp
 
 normalize: *.md
 	@for f in `ls *.md`; do \
-		pandoc --normalize -t markdown $$f > $(TMP); \
+		$(PANDOC) --normalize -t markdown $$f > $(TMP); \
 		if `diff $$f $(TMP) > /dev/null`; then \
 			rm $(TMP); \
 		else \
