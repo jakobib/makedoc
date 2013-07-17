@@ -1,93 +1,28 @@
 ## parts from makespec
 
-DIRNAME = $(shell basename $(CURDIR))
-MAKEDOC = $(wildcard makedoc)
+# path of this file
+MAKEDOC = $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
-ifeq ($(DIRNAME),makedoc)
-	ifeq ($(MAKEDOC),)
-		NAME = makedoc
-		GITHUB = https://github.com/jakobib/makedoc/
-		SOURCE = README.md
-		MAKEDOC = .
-		TITLE = Creating documents with makedoc
-		AUTHOR = Jakob Voß
-	endif
+ifeq ($(words $(MAKEFILE_LIST)),1)
+	NAME	= makedoc
+	GITHUB	= https://github.com/jakobib/makedoc/
+	SOURCE	= README.md
+	TITLE	= Creating documents with makedoc
+	AUTHOR	= Jakob Voß
 endif
 
-ifeq ($(NAME),)
-	NAME = $(DIRNAME)
-endif
+include $(MAKEDOC)/executables.make
+include $(MAKEDOC)/configuration.make
 
-ifeq ($(ABSTRACT)$(ABSTRACT_FROM),)
-	ifneq ($(wildcard abstract.md),)
-		ABSTRACT_FROM = abstract.md
-    endif
-endif
-
-ifeq ($(ABSTRACT),)
-	ifneq ($(ABSTRACT_FROM),)
-		ABSTRACT := $(shell cat "$(ABSTRACT_FROM)")
-	endif
-endif
-
-ifeq ($(SOURCE),)
-	SOURCE = $(NAME).md
-endif
-
-ifneq ($(BIBLIOGRAPHY),)
-	BIBARGS = --bibliography=$(BIBLIOGRAPHY)
-	ifneq ($(CSL),)
-		BIBARGS = --bibliography=$(BIBLIOGRAPHY) --csl=$(CSL)
-	endif
-	BIBLATEX = --biblatex
-	ifneq ($(BIBSTYLE),)
-		BIBLATEX = --biblatex -V bibstyle:$(BIBSTYLE)
-	endif
-endif
-# TODO: use last section header as bibtitle
-
-REVHASH = $(shell git log -1 --format="%H" -- $(SOURCE))
-REVDATE = $(shell git log -1 --format="%ai" -- $(SOURCE))
-REVSHRT = $(shell git log -1 --format="%h" -- $(SOURCE))
-
-ifeq ($(DATE),)
-	DATE = $(REVDATE)
-endif
-
-ifneq ($(GITHUB),)
-	REVLINK = $(GITHUB)commit/$(REVHASH)
-	GIT_ATOM_FEED = $(GITHUB)commits/master.atom
-endif
+########################################################################
 
 COMBINED = $(NAME)-tmp.md
 
-# set `TOC:=` to disable table of contents in slides
-TOC = --toc
-
-########################################################################
-
-PANDOC = $(shell which pandoc)
-ifeq ($(PANDOC),)
-	PANDOC = $(error please install pandoc)
-endif
-
-XELATEX = $(shell which xelatex)
-ifeq ($(XELATEX),)
-	XELATEX = $(error please install xelatex)
-endif
-
-BIBER = $(shell which biber)
-ifeq ($(BIBER),)
-	BIBER = $(error please install biber)
-endif
-
-########################################################################
-
 .SUFFIXES:
 .SUFFIXES: .md .html .pdf .tmp
+.PHONY: info clean
 
 KEYWORDS := $(shell perl -ne '/keywords\s*=(.*)/ && print $$1' metadata.ini 2>/dev/null)
-
 
 # combine metadata as arguments to templates (FIXME: escaping)
 V_METADATA=-V abstract:'$(ABSTRACT)' -V keywords:'$(KEYWORDS)'
@@ -102,17 +37,27 @@ HTML_TEMPLATE = $(MAKEDOC)/templates/$(TEMPLATE).html
 SLIDES_PDF_TEMPLATE = $(MAKEDOC)/templates/$(TEMPLATE)-slides.tex
 V_SLIDES_PDF=
 
-%.html: %.md
-	@rm -f tmp.*
-	@echo "% $(TITLE)" > tmp.md
-	@echo "% $(AUTHOR)" >> tmp.md
-	@echo "% $(DATE)" >> tmp.md
-	@echo "" >> tmp.md
-	@cat $< >> tmp.md
-	@$(PANDOC) -N tmp.md -o $@ --template $(HTML_TEMPLATE) --css $(HTML_CSS) $(V_METADATA)\
+info:
+	@echo NAME='$(NAME)'
+	@echo GITHUB='$(GITHUB)'
+	@echo SOURCE='$(SOURCE)'
+	@echo TITLE='$(TITLE)'
+	@echo AUTHOR='$(AUTHOR)'
+
+html: $(NAME).html
+
+$(NAME).md: $(SOURCE)
+	@cp $< $@ 
+
+%.html: %.tmp
+	@$(PANDOC) -N $< -o $@ --template $(HTML_TEMPLATE) --css $(HTML_CSS) $(V_METADATA)\
 		--smart $(BIBARGS) -t html5
 	@echo created $@
-	@rm tmp.md
+
+%.odt: %.tmp
+	@$(PANDOC) -N $< -o $@ $(V_METADATA)\
+		--smart $(BIBARGS) -t odt
+	@echo created $@
 
 %.tmp: %.md
 	@echo "% $(TITLE)" > $@
@@ -120,7 +65,7 @@ V_SLIDES_PDF=
 	@echo "% $(DATE)" >> $@
 	@echo "" >> $@
 	@cat $< >> $@
-# TODO: replace document variables
+	# TODO: replace document variables
 
 slides.pdf: slides.tmp
 	@$(PANDOC) $< --slide-level 2 $(TOC) -t beamer -o tmp.tex --template $(SLIDES_PDF_TEMPLATE) \
